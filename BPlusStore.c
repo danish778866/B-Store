@@ -1,5 +1,6 @@
 #include<stdio.h>
-#include<conio.h>
+#include<string.h>
+#include<stdlib.h>
 #define ARY 7
 #define MAXKEYS (ARY - 1)
 #define MINKEYS ((ARY + 1)/2 - 1)
@@ -58,6 +59,7 @@ void read_From_File(BPlusTree *Tree_ptr,char fname[]);
 void write_Into_File(BPlusTree *Tree_ptr,char fname[]);
 void PrintStructure(Key_Node *kptr);
 void Print_Tree(BPlusTree *Tree_ptr);
+int Find_Branch(Key_Node *key_ptr,Key_Type k);
 
 main()
 {
@@ -160,7 +162,6 @@ main()
         scanf("%d",&done);            
     }
     Print_Tree(&Tree);
-    getch();      
 }
 
 void write_Into_File(BPlusTree *Tree_ptr,char fname[])
