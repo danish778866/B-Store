@@ -61,7 +61,7 @@ void PrintStructure(Key_Node *kptr);
 void Print_Tree(BPlusTree *Tree_ptr);
 int Find_Branch(Key_Node *key_ptr,Key_Type k);
 
-main()
+int main()
 {
     int i,choice,done;
     Key_Type E_Num,E_Num1,E_Num2;
@@ -88,9 +88,9 @@ main()
     printf("                    7.Print Database\n");
     printf("========================================================================\n");
     done = 1;
+    read_From_File(&Tree,"Employee_Database.txt");
     while(done == 1)
     {
-        read_From_File(&Tree,"Employee_Database.txt");
         printf("Enter your choice:");
         scanf("%d",&choice);
         switch(choice)
@@ -162,6 +162,7 @@ main()
         scanf("%d",&done);            
     }
     Print_Tree(&Tree);
+    return 0;
 }
 
 void write_Into_File(BPlusTree *Tree_ptr,char fname[])
@@ -191,9 +192,8 @@ void read_From_File(BPlusTree *Tree_ptr,char fname[])
     status_code SC;
     InitializeTree(Tree_ptr);
     fp = fopen(fname,"r");
-    while(!feof(fp))
+    while(fscanf(fp,"%d %s %s %s %s",&E_Num,E_Name,E_Desig,E_Addr,P_Num) > 0)
     {
-        fscanf(fp,"%d %s %s %s %s",&E_Num,E_Name,E_Desig,E_Addr,P_Num);
         Employee.Emp_Num = E_Num;
         strcpy(Employee.Emp_Name,E_Name);
         strcpy(Employee.Designation,E_Desig);
