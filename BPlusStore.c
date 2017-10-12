@@ -1,13 +1,17 @@
 #include<stdio.h>
 #include<conio.h>
-#define MAXKEYS 4
-#define MINKEYS 2
-#define ARY 5
+#define ARY 7
+#define MAXKEYS (ARY - 1)
+#define MINKEYS ((ARY + 1)/2 - 1)
 typedef int Key_Type;
-typedef struct Item_Tag
+typedef struct Employee_Tag
         {
-            Key_Type Key;       
-        } Item_Type;
+            Key_Type Emp_Num;
+            char Emp_Name[50];
+            char Emp_Addr[50];
+            char Designation[50];
+            char Phone_Num[20];
+        } Employee_Type;
 typedef enum {FAILURE,SUCCESS} status_code;
 typedef enum {FALSE,TRUE} boolean;
 typedef struct Key_Node_Tag
@@ -22,7 +26,7 @@ typedef struct Key_Node_Tag
 typedef struct Data_Node_Tag
         {
             int Active_Data;
-            Item_Type Data_Arr[ARY + 1];
+            Employee_Type Data_Arr[ARY + 1];
             Key_Node *parent;
             struct Data_Node_Tag *next;
             struct Data_Node_Tag *prev;       
@@ -40,191 +44,163 @@ boolean GT(Key_Type K1,Key_Type K2);
 boolean NEQ(Key_Type K1,Key_Type K2);
 boolean LT(Key_Type K1,Key_Type K2);
 void InitializeTree(BPlusTree *Tree_ptr);
-status_code Insert(BPlusTree *Tree_ptr,Item_Type item);
-int Find_Data_Pos(Data_Node *dptr,Item_Type item);
-status_code Delete(BPlusTree *Tree_ptr,Item_Type item);
+status_code Insert(BPlusTree *Tree_ptr,Employee_Type Employee);
+int Find_Data_Pos(Data_Node *dptr,Employee_Type Employee);
+status_code Delete(BPlusTree *Tree_ptr,Employee_Type Employee);
+void Search(BPlusTree *Tree_ptr,Key_Type E_Num);
+int Height(BPlusTree *Tree_ptr);
+int getNumRecords(BPlusTree *Tree_ptr);
+void RangeSearch(BPlusTree *Tree_ptr,Key_Type Emp_Num1,Key_Type Emp_Num2);
+Data_Node* Search_Data_Node(BPlusTree *Tree_ptr,Key_Type E_Num);
+void PrintDatabase(BPlusTree *Tree_ptr);
+boolean UpdateRecord(BPlusTree *Tree_ptr,Employee_Type Employee);
+void read_From_File(BPlusTree *Tree_ptr,char fname[]);
+void write_Into_File(BPlusTree *Tree_ptr,char fname[]);
+void PrintStructure(Key_Node *kptr);
+void Print_Tree(BPlusTree *Tree_ptr);
 
 main()
 {
+    int i,choice,done;
+    Key_Type E_Num,E_Num1,E_Num2;
     BPlusTree Tree;
-    int i,h;
-    Item_Type d;
-    Data_Node *ptr;
-    Key_Node *k,*j;
-    status_code SC = SUCCESS;
+    char E_Name[50],E_Desig[50],E_Addr[50],P_Num[20];
+    status_code SC;
+    Employee_Type Employee;
     InitializeTree(&Tree);
-    /*for(i = 0;i < 21;i++)
+    printf("--------------------Welcome to the Employee Database--------------------\n\n");
+    printf("Choose one of the following options:\n");
+    printf("========================================================================\n");
+    printf("                    1.Insert a record\n");
+    printf("========================================================================\n");
+    printf("                    2.Delete a record\n");
+    printf("========================================================================\n");
+    printf("                    3.Search for a record\n");
+    printf("========================================================================\n");
+    printf("                    4.Number of records in the database\n");
+    printf("========================================================================\n");
+    printf("                    5.Height of the B+ Tree\n");
+    printf("========================================================================\n");
+    printf("                    6.Range Search\n");
+    printf("========================================================================\n");
+    printf("                    7.Print Database\n");
+    printf("========================================================================\n");
+    done = 1;
+    while(done == 1)
     {
-        printf("Enter the key to insert\n");
-        scanf("%d",&d.Key);
-        //d.Key = i;
-        SC = Insert(&Tree,d);
-        printf("SC = %d\n",SC);      
-    }*/
-    d.Key = 2;
-    SC = Insert(&Tree,d);
-    d.Key = 5;
-    SC = Insert(&Tree,d);
-    d.Key = 7;
-    SC = Insert(&Tree,d);
-    d.Key = 50;
-    SC = Insert(&Tree,d);
-    d.Key = 39;
-    SC = Insert(&Tree,d);
-    d.Key = 22;
-    SC = Insert(&Tree,d);
-    d.Key = 1;
-    SC = Insert(&Tree,d);
-    d.Key = 9;
-    SC = Insert(&Tree,d);
-    d.Key = 8;
-    SC = Insert(&Tree,d);
-    d.Key = 18;
-    SC = Insert(&Tree,d);
-    d.Key = 99;
-    SC = Insert(&Tree,d);
-    d.Key = 11;
-    SC = Insert(&Tree,d);
-    d.Key = 32;
-    SC = Insert(&Tree,d);
-    d.Key = 15;
-    SC = Insert(&Tree,d);
-    d.Key = 45;
-    SC = Insert(&Tree,d);
-    d.Key = 23;
-    SC = Insert(&Tree,d);
-    d.Key = 30;
-    SC = Insert(&Tree,d);
-    d.Key = 44;
-    SC = Insert(&Tree,d);
-    d.Key = 52;
-    SC = Insert(&Tree,d);
-    d.Key = 56;
-    SC = Insert(&Tree,d);
-    d.Key = 51;
-    SC = Insert(&Tree,d);
-     ptr = Tree.data_lptr;
-    while(ptr != NULL)
-    {
-        for(i = 0;i < ptr -> Active_Data;i++)
+        read_From_File(&Tree,"Employee_Database.txt");
+        printf("Enter your choice:");
+        scanf("%d",&choice);
+        switch(choice)
         {
-            printf("%d ",(ptr -> Data_Arr[i]).Key);      
+            case 1:
+                 printf("Enter the record to be inserted/updated in the following order\n");
+                 printf("Number\tName\tDesignation\tAddress\tPhone Number\n"); 
+                 scanf("%d %s %s %s %s",&E_Num,E_Name,E_Desig,E_Addr,P_Num);
+                 Employee.Emp_Num = E_Num;
+                 strcpy(Employee.Emp_Name,E_Name);
+                 strcpy(Employee.Designation,E_Desig);
+                 strcpy(Employee.Emp_Addr,E_Addr);
+                 strcpy(Employee.Phone_Num,P_Num);
+                 SC = Insert(&Tree,Employee);
+                 if(SC == 1)
+                 {
+                     printf("Insertion was successful!\n");      
+                 }
+                 else
+                 {
+                     printf("Insertion was unsuccessful!\n");    
+                 }
+                 break;
+            case 2:
+                 printf("Enter the Employee Number of the record to be deleted\n");
+                 scanf("%d",&E_Num);
+                 Employee.Emp_Num = E_Num;
+                 strcpy(Employee.Emp_Name,"");
+                 strcpy(Employee.Designation,"");
+                 strcpy(Employee.Emp_Addr,"");
+                 strcpy(Employee.Phone_Num,"");
+                 SC = Delete(&Tree,Employee);
+                 if(SC == 1)
+                 {
+                     printf("Deletion successful!\n");      
+                 }
+                 else
+                 {
+                     printf("Deletion unsuccessful!\n");    
+                 }
+                 break;
+            case 3:
+                 printf("Enter the Employee Number of the record to be searched\n");
+                 scanf("%d",&E_Num);
+                 Search(&Tree,E_Num);
+                 break;
+            case 4:
+                 printf("The number of records in your database are %d\n",getNumRecords(&Tree));
+                 break;
+            case 5:
+                 printf("The height of the B+ tree of your database is %d\n",Height(&Tree));
+                 break;
+            case 6:
+                 printf("Enter the range in which the records are to be searched for\n");
+                 scanf("%d %d",&E_Num1,&E_Num2);
+                 RangeSearch(&Tree,E_Num1,E_Num2);
+                 break;
+            case 7:
+                 PrintDatabase(&Tree);
+                 break;
+            default:
+                 printf("You did not enter a valid option.Try again!\n");
+                 break;                  
         }
-        printf("\n");
-        ptr = ptr -> next;          
+        write_Into_File(&Tree,"Employee_Database.txt");
+        printf("Enter one of the following options:\n");
+        printf("1.Continue\n");
+        printf("0.Exit\n");
+        scanf("%d",&done);            
     }
-    d.Key = 9;
-    SC = Delete(&Tree,d);
-    ptr = Tree.data_lptr;
-    while(ptr != NULL)
-    {
-        for(i = 0;i < ptr -> Active_Data;i++)
-        {
-            printf("%d ",(ptr -> Data_Arr[i]).Key);      
-        }
-        printf("\n");
-        ptr = ptr -> next;          
-    }
-    d.Key = 39;
-    SC = Delete(&Tree,d);
-    ptr = Tree.data_lptr;
-    while(ptr != NULL)
-    {
-        for(i = 0;i < ptr -> Active_Data;i++)
-        {
-            printf("%d ",(ptr -> Data_Arr[i]).Key);      
-        }
-        printf("\n");
-        ptr = ptr -> next;          
-    }
-    /*d.Key = 2;
-    SC = Delete(&Tree,d);
-    ptr = Tree.data_lptr;
-    while(ptr != NULL)
-    {
-        for(i = 0;i < ptr -> Active_Data;i++)
-        {
-            printf("%d ",(ptr -> Data_Arr[i]).Key);      
-        }
-        printf("\n");
-        ptr = ptr -> next;          
-    }
-    d.Key = 7;
-    SC = Delete(&Tree,d);
-    ptr = Tree.data_lptr;
-    while(ptr != NULL)
-    {
-        for(i = 0;i < ptr -> Active_Data;i++)
-        {
-            printf("%d ",(ptr -> Data_Arr[i]).Key);      
-        }
-        printf("\n");
-        ptr = ptr -> next;          
-    }
-    d.Key = 5;
-    SC = Delete(&Tree,d);
-    ptr = Tree.data_lptr;
-    while(ptr != NULL)
-    {
-        for(i = 0;i < ptr -> Active_Data;i++)
-        {
-            printf("%d ",(ptr -> Data_Arr[i]).Key);      
-        }
-        printf("\n");
-        ptr = ptr -> next;          
-    }*/
-    ptr = Tree.data_lptr;
-    getch();
-    if(ptr != NULL && ptr -> parent != NULL)
-    {
-    while(ptr != NULL)
-    {
-        k = ptr -> parent;
-        for(h = 0;h < k -> Active_Keys;h++)
-        {
-            printf("p = %d\n",k -> Key_Arr[h]);      
-        }
-        for(i = 0;i < ptr -> Active_Data;i++)
-        {
-            printf("%d ",(ptr -> Data_Arr[i]).Key);      
-        }
-        printf("\n");
-        ptr = ptr -> next;          
-    }
-    k = (Key_Node*)Tree.root;
-    printf("\n%d",k -> Active_Keys);
-    
-    for(i = 0;i < k -> Active_Keys;i++)
-    {
-        if(i==0)
-        {
-            printf("root = %d\n",k -> Key_Arr[i]);
-            if(k -> Child_Type == 1)
-            {
-           j = (Key_Node*)(k -> Children[0]);
-            printf("%d %d\n",j -> Key_Arr[0],j -> Key_Arr[1]);
-            j = (Key_Node*)(k -> Children[1]);
-            printf("%d %d %d\n",j -> Key_Arr[0],j -> Key_Arr[1],j -> Active_Keys);
-            //j = (Key_Node*)(k -> Children[2]);
-            //printf("keys = %d %d active %d\n",j -> Key_Arr[0],j -> Key_Arr[1],j -> Active_Keys);
-            }        
-        }
-    }
-    printf("reaching here?\n\n");
-    printf("\n\n\n");
-    ptr = Tree.data_lptr;
-    k = ptr -> parent;
-    while(k != NULL)
-    {
-        i = k -> Active_Keys;
-        for(h = 0;h < i;h++)
-        {
-            printf("%d ",k -> Key_Arr[h]);      
-        }
-        k = k -> parent;          
-    }
-    }
+    Print_Tree(&Tree);
     getch();      
+}
+
+void write_Into_File(BPlusTree *Tree_ptr,char fname[])
+{
+     FILE *fp;
+     Data_Node *ptr;
+     ptr = Tree_ptr -> data_lptr;
+     int i;
+     fp = fopen(fname,"w");
+     while(ptr != NULL)
+     {
+         for(i = 0;i < ptr -> Active_Data;i++)
+         {
+             fprintf(fp,"%d %s %s %s %s\n",(ptr -> Data_Arr[i]).Emp_Num,(ptr -> Data_Arr[i]).Emp_Name,(ptr -> Data_Arr[i]).Designation,(ptr -> Data_Arr[i]).Emp_Addr,(ptr -> Data_Arr[i]).Phone_Num);
+         }  
+         ptr = ptr -> next;        
+     }
+     fclose(fp);
+}
+
+void read_From_File(BPlusTree *Tree_ptr,char fname[])
+{
+    FILE *fp;
+    Key_Type E_Num;
+    char E_Name[50],E_Desig[50],E_Addr[50],P_Num[20];
+    Employee_Type Employee;
+    status_code SC;
+    InitializeTree(Tree_ptr);
+    fp = fopen(fname,"r");
+    while(!feof(fp))
+    {
+        fscanf(fp,"%d %s %s %s %s",&E_Num,E_Name,E_Desig,E_Addr,P_Num);
+        Employee.Emp_Num = E_Num;
+        strcpy(Employee.Emp_Name,E_Name);
+        strcpy(Employee.Designation,E_Desig);
+        strcpy(Employee.Emp_Addr,E_Addr);
+        strcpy(Employee.Phone_Num,P_Num);
+        SC = Insert(Tree_ptr,Employee);         
+    }
+    fclose(fp);     
 }
 
 void InitializeTree(BPlusTree *Tree_ptr)
@@ -279,14 +255,46 @@ boolean NEQ(Key_Type K1,Key_Type K2)
     return ret_val;        
 }
 
-status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
+boolean UpdateRecord(BPlusTree *Tree_ptr,Employee_Type Employee)
+{
+    boolean ret_val;
+    Data_Node *d_ptr;
+    int pos;
+    if(Tree_ptr -> root == NULL)
+    {
+        ret_val = FALSE;            
+    }
+    else
+    {
+        d_ptr = Search_Data_Node(Tree_ptr,Employee.Emp_Num);
+        pos = Find_Data_Pos(d_ptr,Employee);
+        if(pos != -1)
+        {
+            d_ptr -> Data_Arr[pos] = Employee;
+            ret_val = TRUE;       
+        }
+        else
+        {
+            ret_val = FALSE;    
+        }    
+    }
+    return ret_val;        
+}
+
+status_code Insert(BPlusTree *Tree_ptr,Employee_Type Employee)
 {
     status_code SC = SUCCESS;
     Data_Node *data_ptr,*d,*new_data,*current_data;
     Key_Node *key_ptr,*parent_ptr,*current_ptr,*new_ptr;
     Key_Type new_Key;
     int i,pos,done;
-    if(Tree_ptr -> root == NULL)/*Root is NULL*/
+    boolean Updated;
+    Updated = UpdateRecord(Tree_ptr,Employee);
+    if(Updated)
+    {
+        SC = SUCCESS;       
+    }
+    else if(Tree_ptr -> root == NULL)/*Root is NULL*/
     {
         data_ptr = (Data_Node*)malloc(sizeof(Data_Node));
         if(data_ptr == NULL)
@@ -295,7 +303,7 @@ status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
         }
         else
         {
-            data_ptr -> Data_Arr[0] = item;
+            data_ptr -> Data_Arr[0] = Employee;
             data_ptr -> Active_Data = 1;
             data_ptr -> parent = NULL;
             data_ptr -> next = NULL;
@@ -309,13 +317,13 @@ status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
     else if(Tree_ptr -> root_type == 0)/*Root is a data node*/
     {
         data_ptr = (Data_Node*)(Tree_ptr -> root);
-        data_ptr -> Data_Arr[data_ptr -> Active_Data] = item;
+        data_ptr -> Data_Arr[data_ptr -> Active_Data] = Employee;
         i = data_ptr -> Active_Data - 1;
         //Sort the data node-Insertion sort
-        while((i >= 0) && (LT(item.Key,(data_ptr -> Data_Arr[i]).Key)))
+        while((i >= 0) && (LT(Employee.Emp_Num,(data_ptr -> Data_Arr[i]).Emp_Num)))
         {
             data_ptr -> Data_Arr[i + 1] = data_ptr -> Data_Arr[i];
-            data_ptr -> Data_Arr[i] = item;
+            data_ptr -> Data_Arr[i] = Employee;
             i--;         
         }
         if(data_ptr -> Active_Data < MAXKEYS + 1)//Capacity has not exceeded
@@ -340,17 +348,30 @@ status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
                 new_data -> prev = current_data;
                 new_data -> next = NULL;
                 
-                //Insert data into the new data node from the one which has become full
-                for(i = 0;i < MINKEYS + 1;i++)
+                if(ARY%2 == 1)
                 {
-                    new_data -> Data_Arr[i] = current_data -> Data_Arr[MINKEYS + 1 + i];      
+                    //Insert data into the new data node from the one which has become full
+                    for(i = 0;i < MINKEYS + 1;i++)
+                    {
+                        new_data -> Data_Arr[i] = current_data -> Data_Arr[MINKEYS + 1 + i];      
+                    }
+                
+                    current_data -> Active_Data = MINKEYS + 1;
+                    new_data -> Active_Data = MINKEYS + 1;
                 }
-                
-                current_data -> Active_Data = MINKEYS + 1;
-                new_data -> Active_Data = MINKEYS + 1;
-                
+                else
+                {
+                    (current_data -> Active_Data)++;
+                    new_data -> Active_Data = 0;
+                    for(i = 0;i < ARY/2;i++)
+                    {
+                        new_data -> Data_Arr[i] = current_data -> Data_Arr[ARY/2 + 1 + i];
+                        (current_data -> Active_Data)--;
+                        (new_data -> Active_Data)++;      
+                    }    
+                }
                 //Insert the key in the key node
-                key_ptr -> Key_Arr[0] = (new_data -> Data_Arr[0]).Key;
+                key_ptr -> Key_Arr[0] = (new_data -> Data_Arr[0]).Emp_Num;
                 key_ptr -> Active_Keys = 1;
                 key_ptr -> Children[0] = current_data;
                 key_ptr -> Children[1] = new_data;
@@ -374,20 +395,20 @@ status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
         //Traverse to the level which contains the key nodes having data nodes as their children
         while(key_ptr -> Child_Type == 1)
         {
-            pos = Find_Branch(key_ptr,item.Key);
+            pos = Find_Branch(key_ptr,Employee.Emp_Num);
             key_ptr = key_ptr -> Children[pos];              
         }
         //Find the branch of the data node corresponding to the new Key of the data to be inserted
-        pos = Find_Branch(key_ptr,item.Key);
+        pos = Find_Branch(key_ptr,Employee.Emp_Num);
         data_ptr = key_ptr -> Children[pos];
         
         //Insert the data and sort it on key-Insertion sort
-        data_ptr -> Data_Arr[data_ptr -> Active_Data] = item;
+        data_ptr -> Data_Arr[data_ptr -> Active_Data] = Employee;
         i = data_ptr -> Active_Data - 1;
-        while((i >= 0) && (LT(item.Key,(data_ptr -> Data_Arr[i]).Key)))
+        while((i >= 0) && (LT(Employee.Emp_Num,(data_ptr -> Data_Arr[i]).Emp_Num)))
         {
             data_ptr -> Data_Arr[i + 1] = data_ptr -> Data_Arr[i];
-            data_ptr -> Data_Arr[i] = item;
+            data_ptr -> Data_Arr[i] = Employee;
             i--;         
         }
         if(data_ptr -> Active_Data < MAXKEYS + 1)//If the data node is not full
@@ -398,7 +419,6 @@ status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
         else
         {
             //Data node is full so we need to split it now
-            printf("heya");
             new_data = (Data_Node*)malloc(sizeof(Data_Node));
             if(new_data == NULL)
             {
@@ -411,23 +431,35 @@ status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
                 new_data -> next = current_data -> next;
                 current_data -> next = new_data;
                 new_data -> prev = current_data;
-                printf("hmm");
                 if(new_data -> next != NULL)
                 {
                     (new_data -> next) -> prev = new_data;
                 }
                 
-                //Insert data into the new data node from the one which is full
-                for(i = 0;i < MINKEYS + 1;i++)
+                if(ARY%2 ==1)
                 {
-                    new_data -> Data_Arr[i] = current_data -> Data_Arr[MINKEYS + 1 + i];      
+                    //Insert data into the new data node from the one which is full
+                    for(i = 0;i < MINKEYS + 1;i++)
+                    {
+                        new_data -> Data_Arr[i] = current_data -> Data_Arr[MINKEYS + 1 + i];      
+                    }
+                
+                    current_data -> Active_Data = MINKEYS + 1;
+                    new_data -> Active_Data = MINKEYS + 1;
                 }
-                
-                current_data -> Active_Data = MINKEYS + 1;
-                new_data -> Active_Data = MINKEYS + 1;
-                
+                else
+                {
+                    (current_data -> Active_Data)++;
+                    new_data -> Active_Data = 0;
+                    for(i = 0;i < ARY/2;i++)
+                    {
+                        new_data -> Data_Arr[i] = current_data -> Data_Arr[ARY/2 + 1 + i];
+                        (current_data -> Active_Data)--;
+                        (new_data -> Active_Data)++;      
+                    }    
+                }
                 //The key to be inserted into the key node
-                new_Key = (new_data -> Data_Arr[0]).Key;
+                new_Key = (new_data -> Data_Arr[0]).Emp_Num;
                 key_ptr -> Key_Arr[key_ptr -> Active_Keys] = new_Key;
                 key_ptr -> Children[key_ptr -> Active_Keys + 1] = new_data;
                 i = key_ptr -> Active_Keys - 1;
@@ -440,16 +472,6 @@ status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
                     key_ptr -> Children[i + 1] = new_data;
                     i--;         
                 }
-                if(item.Key==70)
-                {
-                printf("%d %d %d\n\n",key_ptr -> Key_Arr[0],key_ptr -> Key_Arr[1],key_ptr -> Key_Arr[2]);
-                for(i = 0;i < 4;i++)
-                {
-                    d = (Data_Node*)(key_ptr -> Children[i]);
-                    printf("%d\n",(d -> Data_Arr[0]).Key);          
-                }
-                }
-                printf("idiot");
                 //Create the parent link of the new data node
                 new_data -> parent = key_ptr;
                 if(key_ptr -> Active_Keys < MAXKEYS)//Key node is not full yet
@@ -468,36 +490,56 @@ status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
                     else
                     {
                         current_ptr = key_ptr;
-                        //Insert keys into the new key node from the one which is full
-                        for(i = 0;i < MINKEYS;i++)
+                        if(ARY%2 == 1)
                         {
-                            new_ptr -> Key_Arr[i] = current_ptr -> Key_Arr[MINKEYS + 1 + i];       
-                        }
+                            //Insert keys into the new key node from the one which is full
+                            for(i = 0;i < MINKEYS;i++)
+                            {
+                                new_ptr -> Key_Arr[i] = current_ptr -> Key_Arr[MINKEYS + 1 + i];       
+                            }
                         
-                        //Insert the appropriate children
-                        for(i = 0;i <= MINKEYS;i++)
+                            //Insert the appropriate children
+                            for(i = 0;i <= MINKEYS;i++)
+                            {
+                                new_ptr -> Children[i] = current_ptr -> Children[MINKEYS + 1 + i];
+                                ((Data_Node*)(new_ptr -> Children[i])) -> parent = new_ptr;
+                            }
+                        
+                            //Change the number of active keys
+                            current_ptr -> Active_Keys = MINKEYS;
+                            new_ptr -> Active_Keys = MINKEYS;
+                            new_ptr -> Child_Type = current_ptr -> Child_Type;
+                            new_ptr -> parent = current_ptr -> parent;
+                        
+                            //Key to be inserted into a higher node
+                            new_Key = current_ptr -> Key_Arr[MINKEYS];
+                        }
+                        else
                         {
-                            new_ptr -> Children[i] = current_ptr -> Children[MINKEYS + 1 + i];
-                            ((Data_Node*)(new_ptr -> Children[i])) -> parent = new_ptr;
+                            new_ptr -> Active_Keys = 0;
+                            for(i = 0;i < ARY/2 - 1;i++)
+                            {
+                                new_ptr -> Key_Arr[i] = current_ptr -> Key_Arr[ARY/2 + 1 + i];
+                                (current_ptr -> Active_Keys)--;
+                                (new_ptr -> Active_Keys)++;       
+                            }
+                            
+                             for(i = 0;i <= ARY/2 - 1;i++)
+                            {
+                                new_ptr -> Children[i] = current_ptr -> Children[ARY/2 + 1 + i];
+                                ((Data_Node*)(new_ptr -> Children[i])) -> parent = new_ptr;
+                            }
+                            
+                            new_ptr -> Child_Type = current_ptr -> Child_Type;
+                            new_ptr -> parent = current_ptr -> parent;
+                            new_Key = current_ptr -> Key_Arr[ARY/2];    
                         }
-                        
-                        //Change the number of active keys
-                        current_ptr -> Active_Keys = MINKEYS;
-                        new_ptr -> Active_Keys = MINKEYS;
-                        new_ptr -> Child_Type = current_ptr -> Child_Type;
-                        new_ptr -> parent = current_ptr -> parent;
-                        
-                        //Key to be inserted into a higher node
-                        new_Key = current_ptr -> Key_Arr[MINKEYS];
                         done = 0;
-                        printf("here");
                         while(!done)
                         {
-                            printf("hi");
                             //If the key node which has split was the root
                             if(current_ptr -> parent == NULL)
                             {
-                                printf("block1");
                                 //Make a new key node
                                 key_ptr = (Key_Node*)malloc(sizeof(Key_Node));
                                 if(key_ptr == NULL)
@@ -528,7 +570,6 @@ status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
                             {
                                 //Parent exists
                                 parent_ptr = current_ptr -> parent;
-                                printf("\n%d\n",parent_ptr -> Key_Arr[0]);
                                 //Insert the new key and child
                                 parent_ptr -> Key_Arr[parent_ptr -> Active_Keys] = new_Key;
                                 parent_ptr -> Children[parent_ptr -> Active_Keys + 1] = new_ptr;
@@ -553,7 +594,6 @@ status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
                                 }
                                 else
                                 {
-                                    printf("enuf");
                                     //The key node has to be split
                                     new_ptr = (Key_Node*)malloc(sizeof(Key_Node));
                                     if(new_ptr == NULL)
@@ -563,29 +603,51 @@ status_code Insert(BPlusTree *Tree_ptr,Item_Type item)
                                     else
                                     {
                                         current_ptr = parent_ptr;
-                                        //Insert the keys into the new key node from the key node which was full
-                                        for(i = 0;i < MINKEYS;i++)
+                                        if(ARY%2 == 1)
                                         {
-                                            new_ptr -> Key_Arr[i] = current_ptr -> Key_Arr[MINKEYS + i + 1];       
+                                            //Insert the keys into the new key node from the key node which was full
+                                            for(i = 0;i < MINKEYS;i++)
+                                            {
+                                                new_ptr -> Key_Arr[i] = current_ptr -> Key_Arr[MINKEYS + i + 1];       
+                                            }
+                                            //Insert the corresponding children too
+                                            for(i = 0;i <= MINKEYS;i++)
+                                            {
+                                                new_ptr -> Children[i] = current_ptr -> Children[MINKEYS + 1 + i];
+                                                ((Key_Node*)(new_ptr -> Children[i])) -> parent = new_ptr;
+                                            }
+                                        
+                                            current_ptr -> Active_Keys = MINKEYS;
+                                            new_ptr -> Active_Keys = MINKEYS;
+                                            new_ptr -> Child_Type = current_ptr -> Child_Type;
+                                            new_ptr -> parent = current_ptr -> parent;
+                                        
+                                            new_Key = current_ptr -> Key_Arr[MINKEYS];
                                         }
-                                        //Insert the corresponding children too
-                                        for(i = 0;i <= MINKEYS;i++)
+                                        else
                                         {
-                                            new_ptr -> Children[i] = current_ptr -> Children[MINKEYS + 1 + i];
-                                            ((Key_Node*)(new_ptr -> Children[i])) -> parent = new_ptr;
-                                        }
-                                        
-                                        current_ptr -> Active_Keys = MINKEYS;
-                                        new_ptr -> Active_Keys = MINKEYS;
-                                        new_ptr -> Child_Type = current_ptr -> Child_Type;
-                                        new_ptr -> parent = current_ptr -> parent;
-                                        
-                                        new_Key = current_ptr -> Key_Arr[MINKEYS];     
-                                    }        
+                                            new_ptr -> Active_Keys = 0;
+                                            for(i = 0;i < ARY/2 - 1;i++)
+                                            {
+                                                new_ptr -> Key_Arr[i] = current_ptr -> Key_Arr[ARY/2 + 1 + i];
+                                                (current_ptr -> Active_Keys)--;
+                                                (new_ptr -> Active_Keys)++;       
+                                            }
+                            
+                                            for(i = 0;i <= ARY/2 - 1;i++)
+                                            {               
+                                                new_ptr -> Children[i] = current_ptr -> Children[ARY/2 + 1 + i];
+                                                ((Key_Node*)(new_ptr -> Children[i])) -> parent = new_ptr;
+                                            }
+                            
+                                            new_ptr -> Child_Type = current_ptr -> Child_Type;
+                                            new_ptr -> parent = current_ptr -> parent;
+                                            new_Key = current_ptr -> Key_Arr[ARY/2];    
+                                        }     
+                                    }       
                                 }
                             }            
-                        }
-                        printf("end");          
+                        }          
                     }
                 }
                    
@@ -610,12 +672,13 @@ int Find_Branch(Key_Node *key_ptr,Key_Type k)
     return i;    
 }
 
-status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
+status_code Delete(BPlusTree *Tree_ptr,Employee_Type Employee)
 {
     status_code SC = SUCCESS;
     Key_Node *key_ptr,*parent_kptr,*left_kptr,*right_kptr;
     Data_Node *data_ptr,*left_dptr,*right_dptr;
     int i,done,pos;
+    done = 1;
     //If the tree is empty then we can't delete anything
     if(Tree_ptr -> root == NULL)
     {
@@ -627,7 +690,7 @@ status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
          //If the root is a data node
         data_ptr = (Data_Node*)(Tree_ptr -> root);
         //Find the position of the element to be deleted inside the data node
-        pos = Find_Data_Pos(data_ptr,item);
+        pos = Find_Data_Pos(data_ptr,Employee);
         if(pos != -1)
         {
             //Element exists
@@ -664,18 +727,15 @@ status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
         //Traverse to the keynode which is the parent of the data node which contains the element to be deleted
         while(key_ptr -> Child_Type == 1)
         {
-            pos = Find_Branch(key_ptr,item.Key);
-            printf("pos = %d\n\n",pos);
+            pos = Find_Branch(key_ptr,Employee.Emp_Num);
             key_ptr = key_ptr -> Children[pos];              
         }
         //Traverse to the data node which contains the element to be deleted
-        pos = Find_Branch(key_ptr,item.Key);
-        printf("pos = %d\n\n",pos);
+        pos = Find_Branch(key_ptr,Employee.Emp_Num);
         data_ptr = key_ptr -> Children[pos];
         
         //Find the posision of the element to be deleted in the data node
-        pos = Find_Data_Pos(data_ptr,item);
-        ("pos = %d\n",pos);
+        pos = Find_Data_Pos(data_ptr,Employee);
         if(pos == -1)
         {
             //If element is not found then it is a failure condition
@@ -684,7 +744,6 @@ status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
         else
         {
             //Element is found
-            printf("hi\n");
             //Delete the element --> Shift the elements after 'pos' one position left 
             for(i = pos;i < data_ptr -> Active_Data - 1;i++)
             {
@@ -697,20 +756,17 @@ status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
             else
             {
                 //Data node contains less than the minimum number of elements required hence has to be merged with a sibling 
-                printf("at least\n\n");
                 //Find the parent of the data node
                 key_ptr = data_ptr -> parent;
                 
                 //Immediate right and left data nodes --> To check is they are siblings of the data node
                 right_dptr = data_ptr -> next;
                 left_dptr = data_ptr -> prev;
-                printf("thisthis\n\n");
                 if(right_dptr != NULL)
                 {
                     //If the immediate right node is not a sibling,then make it NULL
                     if(right_dptr -> parent != key_ptr)
                     {
-                        printf("are you");
                         right_dptr = NULL;
                     }              
                 }
@@ -718,7 +774,6 @@ status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
                 if(left_dptr != NULL)
                 {
                     //If the immediate left node is not a sibling,then make it NULL
-                    printf("trio\n\n");
                     if(left_dptr -> parent != key_ptr)
                     {
                         left_dptr = NULL;             
@@ -727,7 +782,6 @@ status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
                 //If right sibling exists and it can give an element to the deficient node
                 if(right_dptr != NULL && right_dptr -> Active_Data > MINKEYS + 1)
                 {
-                    printf("i am here");
                     //Take the element from the right sibling
                     data_ptr -> Data_Arr[data_ptr -> Active_Data - 1] = right_dptr -> Data_Arr[0];
                     //Sort the rest elements of the right sibling    
@@ -738,9 +792,9 @@ status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
                     //Decrement the number of active data in right sibling    
                     right_dptr -> Active_Data = right_dptr -> Active_Data - 1;
                     //Find the in-between key in the Key node    
-                    pos = Find_Branch(key_ptr,(right_dptr -> Data_Arr[0]).Key);
+                    pos = Find_Branch(key_ptr,(right_dptr -> Data_Arr[0]).Emp_Num);
                     //Change the corresponding key in the Key node
-                    key_ptr -> Key_Arr[pos - 1] = (right_dptr -> Data_Arr[0]).Key;
+                    key_ptr -> Key_Arr[pos - 1] = (right_dptr -> Data_Arr[0]).Emp_Num;
                         
                     data_ptr -> Active_Data = MINKEYS + 1;
                     done = 1;              
@@ -758,10 +812,9 @@ status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
                     //Decrement the number of active data in the left sibling    
                     left_dptr -> Active_Data = left_dptr -> Active_Data - 1;
                     //Find the in-between key in the Key Node    
-                    pos = Find_Branch(key_ptr,(data_ptr -> Data_Arr[1]).Key);
-                    printf("i am %d\n\n\n\n",pos);
+                    pos = Find_Branch(key_ptr,(data_ptr -> Data_Arr[1]).Emp_Num);
                     //Set the new key
-                    key_ptr -> Key_Arr[pos - 1] = (data_ptr -> Data_Arr[0]).Key;
+                    key_ptr -> Key_Arr[pos - 1] = (data_ptr -> Data_Arr[0]).Emp_Num;
                         
                     data_ptr -> Active_Data = MINKEYS + 1;
                     done = 1;     
@@ -787,7 +840,7 @@ status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
                         free(right_dptr);
                         right_dptr = NULL;
                         //We have to delete the in-between key,so find it's position
-                        pos = Find_Branch(key_ptr,(data_ptr -> Data_Arr[0]).Key);
+                        pos = Find_Branch(key_ptr,(data_ptr -> Data_Arr[0]).Emp_Num);
                         //Delete the key
                         for(i = pos;i < key_ptr -> Active_Keys - 1;i++)
                         {
@@ -797,7 +850,8 @@ status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
                         
                         if(key_ptr -> Active_Keys > MINKEYS)//If the key node does not become deficient after deletion
                         {
-                            key_ptr -> Active_Keys = key_ptr -> Active_Keys - 1;           
+                            key_ptr -> Active_Keys = key_ptr -> Active_Keys - 1;
+                            done = 1;           
                         }
                         else if(key_ptr -> parent == NULL)//If the key node is a root
                         {
@@ -812,327 +866,341 @@ status_code Delete(BPlusTree *Tree_ptr,Item_Type item)
                                 
                                 Tree_ptr -> root = data_ptr;
                                 Tree_ptr -> root_type = 0;           
-                            }     
+                            }
+                            done = 1;     
                         }
                         else
                         {
                             //Key node has to be handled separately now
                             done = 0;
-                            while(!done)
-                            {
-                                printf("again?\n\n");
-                                //Decrement the number of active keys and find the parent
-                                key_ptr -> Active_Keys = key_ptr -> Active_Keys - 1;
-                                parent_kptr = key_ptr -> parent;
-                                //Find the branch of the parent we are in
-                                pos = Find_Branch(parent_kptr,key_ptr -> Key_Arr[0]);
-                                printf("pos = %d idiot\n\n",pos);
-                                if(pos == 0)
-                                {
-                                    //Left sibling of key node does not exist
-                                    left_kptr = NULL;       
-                                }
-                                else
-                                {
-                                    left_kptr = parent_kptr -> Children[pos - 1];    
-                                }
-                                if(pos >= parent_kptr -> Active_Keys)
-                                {
-                                    //Right sibling of key node does not exist
-                                    right_kptr = NULL;       
-                                }
-                                else
-                                {
-                                    right_kptr = parent_kptr -> Children[pos + 1];    
-                                }
-                                printf("stupid\n\n");
-                                //If left sibling of key node exists and it can give a key
-                                if(left_kptr != NULL && left_kptr -> Active_Keys > MINKEYS)
-                                {
-                                    //Shift All the elements of the key node one position right
-                                    for(i = key_ptr -> Active_Keys;i > 0;i--)
-                                    {
-                                        key_ptr -> Key_Arr[i] = key_ptr -> Key_Arr[i - 1];      
-                                    }
-                                    //Shift the children to make room for the new child
-                                    for(i = key_ptr -> Active_Keys + 1;i > 0;i--)
-                                    {
-                                        key_ptr -> Children[i] = key_ptr -> Children[i - 1];      
-                                    }
-                                    //Find the position of the in-between key
-                                    pos = Find_Branch(parent_kptr,left_kptr -> Key_Arr[0]);
-                                    //Lend the key from the parent
-                                    key_ptr -> Key_Arr[0] = parent_kptr -> Key_Arr[pos];
-                                    //Lend the child from the left sibling
-                                    key_ptr -> Children[0] = left_kptr -> Children[left_kptr -> Active_Keys];
-                                    //Establish the parent links
-                                    if(key_ptr -> Child_Type == 0)
-                                    {
-                                        ((Data_Node*)(key_ptr -> Children[0])) -> parent = key_ptr;
-                                    }
-                                    else
-                                    {
-                                        ((Key_Node*)(key_ptr -> Children[0])) -> parent = key_ptr;
-                                    }
-                                    //Left sibling gives a key to the parent
-                                    parent_kptr -> Key_Arr[pos] = left_kptr -> Key_Arr[left_kptr -> Active_Keys - 1];
-                                    //Decrement the number of active keys in the left sibling
-                                    left_kptr -> Active_Keys = left_kptr -> Active_Keys - 1;
-                                    //Increase the number of active keys in my key node
-                                    key_ptr -> Active_Keys = key_ptr -> Active_Keys + 1;
-                                    //We are done
-                                    done = 1;                     
-                                }
-                                else if(right_kptr != NULL && right_kptr -> Active_Keys > MINKEYS)
-                                {
-                                    //If right sibling of key node exists and it can give a key
-                                    //Find the position of the in-between key in the parent node 
-                                    pos = Find_Branch(parent_kptr,key_ptr -> Key_Arr[0]);
-                                    //Lend the key from the parent
-                                    key_ptr -> Key_Arr[key_ptr -> Active_Keys] = parent_kptr -> Key_Arr[pos];
-                                    //Lend a child from the right sibling
-                                    key_ptr -> Children[key_ptr -> Active_Keys + 1] = right_kptr -> Children[0];
-                                    //Establish the parent links
-                                    if(key_ptr -> Child_Type == 0)
-                                    {
-                                        ((Data_Node*)key_ptr -> Children[key_ptr -> Active_Keys + 1]) -> parent = key_ptr;
-                                    }
-                                    else
-                                    {
-                                        ((Key_Node*)key_ptr -> Children[key_ptr -> Active_Keys + 1]) -> parent = key_ptr;
-                                    }
-                                    key_ptr -> Active_Keys = key_ptr -> Active_Keys + 1;
-                                
-                                    //Right sibling gives a key to the parent
-                                    parent_kptr -> Key_Arr[pos] = right_kptr -> Key_Arr[0];
-                                    //Left shift all the keys and children in the right sibling
-                                    for(i = 0;i < right_kptr -> Active_Keys - 1;i++)
-                                    {
-                                        right_kptr -> Key_Arr[i] = right_kptr -> Key_Arr[i + 1];      
-                                    }
-                                    for(i = 0;i < right_kptr -> Active_Keys;i++)
-                                    {
-                                        right_kptr -> Children[i] = right_kptr -> Children[i + 1];      
-                                    }
-                                    //Decrement the number of active keys in the right sibling
-                                    right_kptr -> Active_Keys = right_kptr -> Active_Keys - 1;
-                                    //We are done 
-                                    done = 1; 
-                                }
-                                else
-                                {
-                                    //Now we have to merge the key nodes because we cannot lend the key from any sibling
-                                    printf("enter??\n\n");
-                                    if(left_kptr != NULL)
-                                    {
-                                        printf("hereno?\n\n");
-                                        //Find the position of the in-between key in the parent node
-                                        pos = Find_Branch(parent_kptr,left_kptr -> Key_Arr[0]);
-                                        printf("%d pos = %d %d\n\n",parent_kptr -> Key_Arr[0],pos,(left_kptr -> Key_Arr[0]));
-                                        //Bring the in-between key down
-                                        left_kptr -> Key_Arr[left_kptr -> Active_Keys] = parent_kptr -> Key_Arr[pos];
-                                        left_kptr -> Active_Keys = left_kptr -> Active_Keys + 1;
-                                        //Bring the keys from the deficient node
-                                        for(i = 0;i < key_ptr -> Active_Keys;i++)
-                                        {
-                                            left_kptr -> Key_Arr[left_kptr -> Active_Keys + i] = key_ptr -> Key_Arr[i];         
-                                        }
-                                        //Bring the children from the deficient node
-                                        for(i = 0;i <= key_ptr -> Active_Keys;i++)
-                                        {
-                                            left_kptr -> Children[left_kptr -> Active_Keys + i] = key_ptr -> Children[i];
-                                            if(key_ptr -> Child_Type == 0)
-                                            {
-                                                ((Data_Node*)(left_kptr -> Children[left_kptr -> Active_Keys + i])) -> parent = left_kptr;              
-                                            } 
-                                            else
-                                            {
-                                                ((Key_Node*)(left_kptr -> Children[left_kptr -> Active_Keys + i])) -> parent = left_kptr;
-                                            }     
-                                        }
-                                        left_kptr -> Active_Keys = (left_kptr -> Active_Keys) + (key_ptr -> Active_Keys);
-                                        free(key_ptr);
-                                        key_ptr = NULL;
-                                        printf("play?\n\n");
-                                        //Sort the parent node
-                                        for(i = pos;i < parent_kptr -> Active_Keys - 1;i++)
-                                        {
-                                            parent_kptr -> Key_Arr[i] = parent_kptr -> Key_Arr[i + 1];          
-                                        }
-                                        for(i = pos + 1;i < parent_kptr -> Active_Keys;i++)
-                                        {
-                                            parent_kptr -> Children[i] = parent_kptr -> Children[i + 1];          
-                                        }
-                                        
-                                        if(parent_kptr -> Active_Keys > MINKEYS)
-                                        {
-                                            //Parent is not deficient
-                                            parent_kptr -> Active_Keys = parent_kptr -> Active_Keys - 1;
-                                            done = 1;               
-                                        }
-                                        else
-                                        {
-                                            if(parent_kptr -> parent == NULL)
-                                            {
-                                                //Parent is a root
-                                                printf("are you?\n\n");
-                                                //No restriction on root so decrement the number of active keys
-                                                parent_kptr -> Active_Keys = parent_kptr -> Active_Keys - 1;
-                                                if(parent_kptr -> Active_Keys != 0)
-                                                {
-                                                    done = 1;               
-                                                }
-                                                else
-                                                {
-                                                    //If the number of keys in the root becomes zero change the root
-                                                    printf("this\n\n");
-                                                    free(parent_kptr);
-                                                    parent_kptr = NULL;
-                                                    
-                                                    left_kptr -> parent = NULL;
-                                                    printf("humy\n\n");
-                                                    
-                                                    Tree_ptr -> root = left_kptr;
-                                                    Tree_ptr -> root_type = 1;
-                                                    done = 1;
-                                                    printf("haha\n\n");    
-                                                }                   
-                                            }
-                                            else
-                                            {
-                                                //Parent is deficient now,so we have to enter the loop again
-                                                key_ptr = parent_kptr;     
-                                            }    
-                                        }             
-                                    }
-                                    else if(right_kptr != NULL)
-                                    {
-                                        //Right sibling exists -- We have to merge it with our deficient key node
-                                        printf("am i here??");
-                                        //Find the position of the in-between element
-                                        pos = Find_Branch(parent_kptr,key_ptr -> Key_Arr[0]);
-                                        //Lend a key from the parent
-                                        key_ptr -> Key_Arr[key_ptr -> Active_Keys] = parent_kptr -> Key_Arr[pos];
-                                        //Increment the number of active keys
-                                        key_ptr -> Active_Keys = key_ptr -> Active_Keys + 1;
-                                        //Bring all keys from the right sibling
-                                        for(i = 0;i < right_kptr -> Active_Keys;i++)
-                                        {
-                                            key_ptr -> Key_Arr[key_ptr -> Active_Keys + i] = right_kptr -> Key_Arr[i];
-                                            key_ptr -> Active_Keys = key_ptr -> Active_Keys + 1;      
-                                        }
-                                        printf("hex keys\n");
-                                        //Bring all the children from the right sibling
-                                        for(i = 0;i <= right_kptr -> Active_Keys;i++)
-                                        {
-                                            key_ptr -> Children[key_ptr -> Active_Keys + i] = right_kptr -> Children[i];
-                                            if(key_ptr -> Child_Type == 0)
-                                            {
-                                                ((Data_Node*)(key_ptr -> Children[key_ptr -> Active_Keys + i])) -> parent = key_ptr;           
-                                            }
-                                            else
-                                            {
-                                                ((Key_Node*)(key_ptr -> Children[key_ptr -> Active_Keys + i])) -> parent = key_ptr;
-                                            }      
-                                        }
-                                        //Increment the number of active keys in the deficient node
-                                        key_ptr -> Active_Keys = (key_ptr -> Active_Keys) + (right_kptr -> Active_Keys);
-                                        printf("humpty\n\n");
-                                        free(right_kptr);
-                                        right_kptr = NULL;
-                                        //Sort the rest of the keys and children in the parent node
-                                        for(i = pos;i < parent_kptr -> Active_Keys - 1;i++)
-                                        {
-                                            parent_kptr -> Key_Arr[i] = parent_kptr -> Key_Arr[i + 1];      
-                                        }
-                                        for(i = pos + 1;i < parent_kptr -> Active_Keys;i++)
-                                        {
-                                            parent_kptr -> Children[i] = parent_kptr -> Children[i + 1];      
-                                        }
-                                        printf("dumpty\n\n");
-                                        if(parent_kptr -> Active_Keys > MINKEYS)
-                                        {
-                                            //If parent is not deficient we are done
-                                            parent_kptr -> Active_Keys = parent_kptr -> Active_Keys - 1;
-                                            done = 1;               
-                                        }
-                                        else
-                                        {
-                                            if(parent_kptr -> parent == NULL)
-                                            {
-                                                //Parent is a root
-                                                printf("and here??\n\n");
-                                                //No restriction on root hence decrement the number of active keys
-                                                parent_kptr -> Active_Keys = parent_kptr -> Active_Keys - 1;
-                                                if(parent_kptr -> Active_Keys != 0)
-                                                {
-                                                    done = 1;               
-                                                }
-                                                else
-                                                {
-                                                    //If number of active keys becomes zero,change the root
-                                                    printf("finally done\n\n");
-                                                    free(parent_kptr);
-                                                    parent_kptr = NULL;
-                                                    
-                                                    key_ptr -> parent = NULL;
-                                                    
-                                                    Tree_ptr -> root = key_ptr;
-                                                    Tree_ptr -> root_type = 1;
-                                                    done = 1;    
-                                                }                   
-                                            }
-                                            else
-                                            {
-                                                //Repeat the same procedure for the deficient parent
-                                                printf("huhyht\n\n");
-                                                key_ptr = parent_kptr;     
-                                            }
-                                        }       
-                                    }    
-                                }
-                            }
                         }              
                     }
                     else if(left_dptr != NULL)
                     {
-                        printf("I am the stud\n\n");
+                        //Left sibling of data node exists
+                        //Decrease the number of active elements in our data node
                         data_ptr -> Active_Data = data_ptr -> Active_Data - 1;
-                        
+                        //Bring the elements from our deficient node to the left sibling
                         for(i = 0;i < data_ptr -> Active_Data;i++)
                         {
-                            printf("one\n\n");
-                            left_dptr -> Data_Arr[left_dptr -> Active_Data + i] = data_ptr -> Data_Arr[i];
-                            left_dptr -> Active_Data = left_dptr -> Active_Data + 1;      
+                            left_dptr -> Data_Arr[left_dptr -> Active_Data + i] = data_ptr -> Data_Arr[i];      
                         }
+                        
+                        left_dptr -> Active_Data = (left_dptr -> Active_Data) + (data_ptr -> Active_Data);
+                        //Handle the doubly linked list
                         left_dptr -> next = data_ptr -> next;
                         if(data_ptr -> next != NULL)
                         {
                             (data_ptr -> next) -> prev = left_dptr;            
                         }
-                        
                         free(data_ptr);
                         data_ptr = NULL;
                         
-                        pos = Find_Branch(key_ptr,(left_dptr -> Data_Arr[0]).Key);
-                        
-                        
-                             
+                        //We have to delete the in-between key,so find it's position
+                        pos = Find_Branch(key_ptr,(left_dptr -> Data_Arr[0]).Emp_Num);
+                        //Delete the key
+                        for(i = pos;i < key_ptr -> Active_Keys - 1;i++)
+                        {
+                            key_ptr -> Key_Arr[i] = key_ptr -> Key_Arr[i + 1];
+                            key_ptr -> Children[i + 1] = key_ptr -> Children[i + 2];      
+                        }
+                        if(key_ptr -> Active_Keys > MINKEYS)//If the key node does not become deficient after deletion
+                        {
+                            key_ptr -> Active_Keys = key_ptr -> Active_Keys - 1;
+                            done = 1;           
+                        }
+                        else if(key_ptr -> parent == NULL)//If the key node is a root
+                        {
+                            key_ptr -> Active_Keys = key_ptr -> Active_Keys - 1;
+                            
+                            if(key_ptr -> Active_Keys == 0)
+                            {
+                                //Key node becomes empty -> Only data node remaining hence data node should become the root
+                                free(key_ptr);
+                                key_ptr = NULL;
+                                left_dptr -> parent = NULL;
+                                
+                                Tree_ptr -> root = left_dptr;
+                                Tree_ptr -> root_type = 0;           
+                            }
+                            done = 1;     
+                        }
+                        else
+                        {
+                            //Key node has to be handled separately now
+                            done = 0;
+                        }    
                     }    
                 }                
             }    
         }        
     }
+    while(!done)
+    {
+        //Decrement the number of active keys and find the parent
+        key_ptr -> Active_Keys = key_ptr -> Active_Keys - 1;
+        parent_kptr = key_ptr -> parent;
+        //Find the branch of the parent we are in
+        pos = Find_Branch(parent_kptr,key_ptr -> Key_Arr[0]);
+        if(pos == 0)
+        {
+            //Left sibling of key node does not exist
+            left_kptr = NULL;       
+        }
+        else
+        {
+            left_kptr = parent_kptr -> Children[pos - 1];    
+        }
+        if(pos >= parent_kptr -> Active_Keys)
+        {
+            //Right sibling of key node does not exist
+            right_kptr = NULL;       
+        }
+        else
+        {
+            right_kptr = parent_kptr -> Children[pos + 1];    
+        }
+        //If left sibling of key node exists and it can give a key
+        if(left_kptr != NULL && left_kptr -> Active_Keys > MINKEYS)
+        {
+            //Shift All the elements of the key node one position right
+            for(i = key_ptr -> Active_Keys;i > 0;i--)
+            {
+                key_ptr -> Key_Arr[i] = key_ptr -> Key_Arr[i - 1];      
+            }
+            //Shift the children to make room for the new child
+            for(i = key_ptr -> Active_Keys + 1;i > 0;i--)
+            {
+                key_ptr -> Children[i] = key_ptr -> Children[i - 1];      
+            }
+            //Find the position of the in-between key
+            pos = Find_Branch(parent_kptr,left_kptr -> Key_Arr[0]);
+            //Lend the key from the parent
+            key_ptr -> Key_Arr[0] = parent_kptr -> Key_Arr[pos];
+            //Lend the child from the left sibling
+            key_ptr -> Children[0] = left_kptr -> Children[left_kptr -> Active_Keys];
+            //Establish the parent links
+            if(key_ptr -> Child_Type == 0)
+            {
+                ((Data_Node*)(key_ptr -> Children[0])) -> parent = key_ptr;
+            }
+            else
+            {
+                ((Key_Node*)(key_ptr -> Children[0])) -> parent = key_ptr;
+            }
+            //Left sibling gives a key to the parent
+            parent_kptr -> Key_Arr[pos] = left_kptr -> Key_Arr[left_kptr -> Active_Keys - 1];
+            //Decrement the number of active keys in the left sibling
+            left_kptr -> Active_Keys = left_kptr -> Active_Keys - 1;
+            //Increase the number of active keys in my key node
+            key_ptr -> Active_Keys = key_ptr -> Active_Keys + 1;
+            //We are done
+            done = 1;                     
+        }
+        else if(right_kptr != NULL && right_kptr -> Active_Keys > MINKEYS)
+        {
+            //If right sibling of key node exists and it can give a key
+            //Find the position of the in-between key in the parent node 
+            pos = Find_Branch(parent_kptr,key_ptr -> Key_Arr[0]);
+            //Lend the key from the parent
+            key_ptr -> Key_Arr[key_ptr -> Active_Keys] = parent_kptr -> Key_Arr[pos];
+            //Lend a child from the right sibling
+            key_ptr -> Children[key_ptr -> Active_Keys + 1] = right_kptr -> Children[0];
+            //Establish the parent links
+            if(key_ptr -> Child_Type == 0)
+            {
+                ((Data_Node*)key_ptr -> Children[key_ptr -> Active_Keys + 1]) -> parent = key_ptr;
+            }
+            else
+            {
+                ((Key_Node*)key_ptr -> Children[key_ptr -> Active_Keys + 1]) -> parent = key_ptr;
+            }
+            key_ptr -> Active_Keys = key_ptr -> Active_Keys + 1;
+                                
+            //Right sibling gives a key to the parent
+            parent_kptr -> Key_Arr[pos] = right_kptr -> Key_Arr[0];
+            //Left shift all the keys and children in the right sibling
+            for(i = 0;i < right_kptr -> Active_Keys - 1;i++)
+            {
+                right_kptr -> Key_Arr[i] = right_kptr -> Key_Arr[i + 1];      
+            }
+            for(i = 0;i < right_kptr -> Active_Keys;i++)
+            {
+                right_kptr -> Children[i] = right_kptr -> Children[i + 1];      
+            }
+            //Decrement the number of active keys in the right sibling
+            right_kptr -> Active_Keys = right_kptr -> Active_Keys - 1;
+            //We are done 
+            done = 1; 
+        }
+        else
+        {
+            //Now we have to merge the key nodes because we cannot lend the key from any sibling
+            if(left_kptr != NULL)
+            {
+                //Find the position of the in-between key in the parent node
+                pos = Find_Branch(parent_kptr,left_kptr -> Key_Arr[0]);
+                //Bring the in-between key down
+                left_kptr -> Key_Arr[left_kptr -> Active_Keys] = parent_kptr -> Key_Arr[pos];
+                left_kptr -> Active_Keys = left_kptr -> Active_Keys + 1;
+                //Bring the keys from the deficient node
+                for(i = 0;i < key_ptr -> Active_Keys;i++)
+                {
+                    left_kptr -> Key_Arr[left_kptr -> Active_Keys + i] = key_ptr -> Key_Arr[i];         
+                }
+                //Bring the children from the deficient node
+                for(i = 0;i <= key_ptr -> Active_Keys;i++)
+                {
+                    left_kptr -> Children[left_kptr -> Active_Keys + i] = key_ptr -> Children[i];
+                    if(key_ptr -> Child_Type == 0)
+                    {
+                        ((Data_Node*)(left_kptr -> Children[left_kptr -> Active_Keys + i])) -> parent = left_kptr;              
+                    } 
+                    else
+                    {
+                        ((Key_Node*)(left_kptr -> Children[left_kptr -> Active_Keys + i])) -> parent = left_kptr;
+                    }     
+                }
+                left_kptr -> Active_Keys = (left_kptr -> Active_Keys) + (key_ptr -> Active_Keys);
+                free(key_ptr);
+                key_ptr = NULL;
+                //Sort the parent node
+                for(i = pos;i < parent_kptr -> Active_Keys - 1;i++)
+                {
+                    parent_kptr -> Key_Arr[i] = parent_kptr -> Key_Arr[i + 1];          
+                }
+                for(i = pos + 1;i < parent_kptr -> Active_Keys;i++)
+                {
+                    parent_kptr -> Children[i] = parent_kptr -> Children[i + 1];          
+                }
+                                        
+                if(parent_kptr -> Active_Keys > MINKEYS)
+                {
+                    //Parent is not deficient
+                    parent_kptr -> Active_Keys = parent_kptr -> Active_Keys - 1;
+                    done = 1;               
+                }
+                else
+                {
+                    if(parent_kptr -> parent == NULL)
+                    {
+                        //Parent is a root
+                        //No restriction on root so decrement the number of active keys
+                        parent_kptr -> Active_Keys = parent_kptr -> Active_Keys - 1;
+                        if(parent_kptr -> Active_Keys != 0)
+                        {
+                            done = 1;               
+                        }
+                        else
+                        {
+                            //If the number of keys in the root becomes zero change the root
+                            free(parent_kptr);
+                            parent_kptr = NULL;
+                                                    
+                            left_kptr -> parent = NULL;
+                                                    
+                            Tree_ptr -> root = left_kptr;
+                            Tree_ptr -> root_type = 1;
+                            done = 1;
+                        }                   
+                    }
+                    else
+                    {
+                        //Parent is deficient now,so we have to enter the loop again
+                        key_ptr = parent_kptr;     
+                    }    
+                }             
+            }
+            else if(right_kptr != NULL)
+            {
+                //Right sibling exists -- We have to merge it with our deficient key node
+                //Find the position of the in-between element
+                pos = Find_Branch(parent_kptr,key_ptr -> Key_Arr[0]);
+                //Lend a key from the parent
+                key_ptr -> Key_Arr[key_ptr -> Active_Keys] = parent_kptr -> Key_Arr[pos];
+                //Increment the number of active keys
+                key_ptr -> Active_Keys = key_ptr -> Active_Keys + 1;
+                //Bring all keys from the right sibling
+                for(i = 0;i < right_kptr -> Active_Keys;i++)
+                {
+                    key_ptr -> Key_Arr[key_ptr -> Active_Keys + i] = right_kptr -> Key_Arr[i];   
+                }
+                   
+                //Bring all the children from the right sibling
+                for(i = 0;i <= right_kptr -> Active_Keys;i++)
+                {
+                    key_ptr -> Children[key_ptr -> Active_Keys + i] = right_kptr -> Children[i];
+                    if(key_ptr -> Child_Type == 0)
+                    {
+                        ((Data_Node*)(key_ptr -> Children[key_ptr -> Active_Keys + i])) -> parent = key_ptr;           
+                    }
+                    else
+                    {
+                        ((Key_Node*)(key_ptr -> Children[key_ptr -> Active_Keys + i])) -> parent = key_ptr;
+                    }      
+                }
+                //Increment the number of active keys in the deficient node
+                key_ptr -> Active_Keys = (key_ptr -> Active_Keys) + (right_kptr -> Active_Keys);
+                free(right_kptr);
+                right_kptr = NULL;
+                //Sort the rest of the keys and children in the parent node
+                for(i = pos;i < parent_kptr -> Active_Keys - 1;i++)
+                {
+                    parent_kptr -> Key_Arr[i] = parent_kptr -> Key_Arr[i + 1];      
+                }
+                for(i = pos + 1;i < parent_kptr -> Active_Keys;i++)
+                {
+                    parent_kptr -> Children[i] = parent_kptr -> Children[i + 1];      
+                }
+                if(parent_kptr -> Active_Keys > MINKEYS)
+                {
+                    //If parent is not deficient we are done
+                    parent_kptr -> Active_Keys = parent_kptr -> Active_Keys - 1;
+                    done = 1;               
+                }
+                else
+                {
+                    if(parent_kptr -> parent == NULL)
+                    {
+                        //Parent is a root
+                        //No restriction on root hence decrement the number of active keys
+                        parent_kptr -> Active_Keys = parent_kptr -> Active_Keys - 1;
+                        if(parent_kptr -> Active_Keys != 0)
+                        {
+                            done = 1;               
+                        }
+                        else
+                        {
+                            //If number of active keys becomes zero,change the root
+                            free(parent_kptr);
+                            parent_kptr = NULL;
+                                                    
+                            key_ptr -> parent = NULL;
+                                                    
+                            Tree_ptr -> root = key_ptr;
+                            Tree_ptr -> root_type = 1;
+                            done = 1;    
+                        }                   
+                    }
+                    else
+                    {
+                        //Repeat the same procedure for the deficient parent
+                        key_ptr = parent_kptr;     
+                    }
+                }       
+            }    
+        }
+    }
     return SC;            
 }
 
-int Find_Data_Pos(Data_Node *dptr,Item_Type item)
+int Find_Data_Pos(Data_Node *dptr,Employee_Type Employee)
 {
     Key_Type k;
     int i;
-    k = item.Key;
+    k = Employee.Emp_Num;
     i = 0;
-    while((i < dptr -> Active_Data) && NEQ(k,(dptr -> Data_Arr[i]).Key))
+    while((i < dptr -> Active_Data) && NEQ(k,(dptr -> Data_Arr[i]).Emp_Num))
     {
         i++;         
     }
@@ -1141,4 +1209,285 @@ int Find_Data_Pos(Data_Node *dptr,Item_Type item)
         i = -1;     
     }
     return i;    
+}
+
+void Search(BPlusTree *Tree_ptr,Key_Type E_Num)
+{
+    int pos;
+    Key_Node *k_ptr;
+    Data_Node *d_ptr;
+    Employee_Type Employee;
+    
+    if(Tree_ptr -> root == NULL)
+    {
+        pos = -1;
+        d_ptr = NULL;            
+    }
+    else if(Tree_ptr -> root_type == 0)
+    {
+        d_ptr = (Data_Node*)(Tree_ptr -> root);
+        Employee.Emp_Num = E_Num;
+        pos = Find_Data_Pos(d_ptr,Employee);
+        if(pos != -1)
+        {
+            printf("%d %s %s %s %s\n",(d_ptr -> Data_Arr[pos]).Emp_Num,(d_ptr -> Data_Arr[pos]).Emp_Name,(d_ptr -> Data_Arr[pos]).Designation,(d_ptr -> Data_Arr[pos]).Emp_Addr,(d_ptr -> Data_Arr[pos]).Phone_Num);      
+        }
+        else
+        {
+            printf("Your database does not contain the record you are searching for\n");    
+        }     
+    }
+    else
+    {
+        k_ptr = (Key_Node*)(Tree_ptr -> root);
+        while(k_ptr -> Child_Type == 1)
+        {
+            pos = Find_Branch(k_ptr,E_Num);
+            k_ptr = k_ptr -> Children[pos];            
+        }
+        pos = Find_Branch(k_ptr,E_Num);
+        d_ptr = k_ptr -> Children[pos];
+        
+        Employee.Emp_Num = E_Num;
+        pos = Find_Data_Pos(d_ptr,Employee);
+        if(pos != -1)
+        {
+            printf("%d %s %s %s %s\n",(d_ptr -> Data_Arr[pos]).Emp_Num,(d_ptr -> Data_Arr[pos]).Emp_Name,(d_ptr -> Data_Arr[pos]).Designation,(d_ptr -> Data_Arr[pos]).Emp_Addr,(d_ptr -> Data_Arr[pos]).Phone_Num);       
+        }
+        else
+        {
+            printf("Your database does not contain the record you are searching for\n");   
+        }    
+    }    
+}
+
+Data_Node* Search_Data_Node(BPlusTree *Tree_ptr,Key_Type E_Num)
+{
+    int pos;
+    Key_Node *k_ptr;
+    Data_Node *d_ptr;
+    
+    if(Tree_ptr -> root == NULL)
+    {
+        pos = -1;
+        d_ptr = NULL;            
+    }
+    else if(Tree_ptr -> root_type == 0)
+    {
+        d_ptr = (Data_Node*)(Tree_ptr -> root);
+    }
+    else
+    {
+        k_ptr = (Key_Node*)(Tree_ptr -> root);
+        while(k_ptr -> Child_Type == 1)
+        {
+            pos = Find_Branch(k_ptr,E_Num);
+            k_ptr = k_ptr -> Children[pos];            
+        }
+        pos = Find_Branch(k_ptr,E_Num);
+        d_ptr = k_ptr -> Children[pos];
+    }
+    return d_ptr;    
+}
+
+int Height(BPlusTree *Tree_ptr)
+{
+    int height;
+    Key_Node *k_ptr;
+    
+    if(Tree_ptr -> root == NULL)
+    {
+        height = -1;            
+    }
+    else if(Tree_ptr -> root_type == 0)
+    {
+        height = 0;     
+    }
+    else
+    {
+        k_ptr = (Key_Node*)(Tree_ptr -> root);
+        height = 1;
+        while(k_ptr -> Child_Type == 1)
+        {
+            k_ptr = k_ptr -> Children[0];
+            height++;            
+        }    
+    }
+    return height;    
+}
+
+int getNumRecords(BPlusTree *Tree_ptr)
+{
+    int NumRecords;
+    Data_Node *d_ptr;
+    
+    if(Tree_ptr -> root == NULL)
+    {
+        NumRecords = 0;            
+    }
+    else if(Tree_ptr -> root_type == 0)
+    {
+        d_ptr = (Data_Node*)(Tree_ptr -> root);
+        NumRecords = d_ptr -> Active_Data;         
+    }
+    else
+    {
+        d_ptr = Tree_ptr -> data_lptr;
+        NumRecords = 0;
+        while(d_ptr != NULL)
+        {
+            NumRecords = NumRecords + d_ptr -> Active_Data;
+            d_ptr = d_ptr -> next;            
+        }    
+    }
+    return NumRecords;    
+}
+
+void RangeSearch(BPlusTree *Tree_ptr,Key_Type Emp_Num1,Key_Type Emp_Num2)
+{
+    Data_Node *d_ptr1,*d_ptr2;
+    Key_Type temp;
+    int i;
+    
+    if(Tree_ptr -> root == NULL)
+    {
+        printf("Your database is empty\n");            
+    }
+    else if(Emp_Num1 < 0 || Emp_Num2 < 0)
+    {
+        printf("ERROR!-->Wrong type of input.Employee number must be positive");     
+    }
+    else
+    {
+        if(Emp_Num1 == Emp_Num2)
+        {
+            Search(Tree_ptr,Emp_Num1);                  
+        }
+        else
+        {
+            if(Emp_Num2 < Emp_Num1)
+            {
+                temp = Emp_Num1;
+                Emp_Num1 = Emp_Num2;
+                Emp_Num2 = temp;              
+            }
+    
+            d_ptr1 = Search_Data_Node(Tree_ptr,Emp_Num1);
+            d_ptr2 = Search_Data_Node(Tree_ptr,Emp_Num2);
+            i = 0;
+            while(LT((d_ptr1 -> Data_Arr[i]).Emp_Num,Emp_Num1) && i < d_ptr1 -> Active_Data)
+            {
+                i++;                 
+            }
+            if(i == d_ptr1 -> Active_Data)
+            {
+                d_ptr1 = d_ptr1 -> next;
+                i = 0;     
+            }
+            
+            if(d_ptr1 != NULL)
+            {
+                if(d_ptr1 == d_ptr2)
+                {
+                    while(i < d_ptr1 -> Active_Data)
+                    {
+                        printf("%d %s %s %s %s\n",(d_ptr1 -> Data_Arr[i]).Emp_Num,(d_ptr1 -> Data_Arr[i]).Emp_Name,(d_ptr1 -> Data_Arr[i]).Designation,(d_ptr1 -> Data_Arr[i]).Emp_Addr,(d_ptr1 -> Data_Arr[i]).Phone_Num);
+                        i++;    
+                    }          
+                }
+                else
+                {
+                    while(d_ptr1 != d_ptr2)
+                    {
+                        while(i < d_ptr1 -> Active_Data)
+                        {
+                            printf("%d %s %s %s %s\n",(d_ptr1 -> Data_Arr[i]).Emp_Num,(d_ptr1 -> Data_Arr[i]).Emp_Name,(d_ptr1 -> Data_Arr[i]).Designation,(d_ptr1 -> Data_Arr[i]).Emp_Addr,(d_ptr1 -> Data_Arr[i]).Phone_Num);
+                            i++;        
+                        }
+                        d_ptr1 = d_ptr1 -> next;
+                        i = 0;                 
+                    }
+                    i = 0;
+                    while((LT((d_ptr1 -> Data_Arr[i]).Emp_Num,Emp_Num2) || !NEQ((d_ptr1 -> Data_Arr[i]).Emp_Num,Emp_Num2)) && i < d_ptr1 -> Active_Data)
+                    {
+                        printf("%d %s %s %s %s\n",(d_ptr1 -> Data_Arr[i]).Emp_Num,(d_ptr1 -> Data_Arr[i]).Emp_Name,(d_ptr1 -> Data_Arr[i]).Designation,(d_ptr1 -> Data_Arr[i]).Emp_Addr,(d_ptr1 -> Data_Arr[i]).Phone_Num);
+                        i++;                 
+                    }          
+                }
+            }
+            else
+            {
+                printf("Your database does not contain any record in the range you have specified\n");    
+            }
+        }
+    }
+}
+
+void PrintDatabase(BPlusTree *Tree_ptr)
+{
+    Data_Node *d_ptr;
+    int i;
+    
+    if(Tree_ptr -> root == NULL)
+    {
+        printf("Your database is empty");            
+    }
+    else
+    {
+        d_ptr = Tree_ptr -> data_lptr;
+        
+        while(d_ptr != NULL)
+        {
+            for(i = 0;i < d_ptr -> Active_Data;i++)
+            {  
+                printf("%d %s %s %s %s\n",(d_ptr -> Data_Arr[i]).Emp_Num,(d_ptr -> Data_Arr[i]).Emp_Name,(d_ptr -> Data_Arr[i]).Designation,(d_ptr -> Data_Arr[i]).Emp_Addr,(d_ptr -> Data_Arr[i]).Phone_Num);      
+            }
+            d_ptr = d_ptr -> next;            
+        }    
+    }     
+}
+
+
+void Print_Tree(BPlusTree *Tree_ptr)
+{
+    Key_Node *kptr;
+    if(Tree_ptr -> root == NULL)
+    {
+        printf("Tree is empty\n");            
+    }
+    else if(Tree_ptr -> root_type == 0)
+    {
+        PrintDatabase(Tree_ptr);     
+    }
+    if(Tree_ptr -> root_type == 1)
+    {
+        kptr = (Key_Node*)(Tree_ptr -> root);
+        PrintStructure(kptr);
+        PrintDatabase(Tree_ptr);              
+    }     
+}
+
+void PrintStructure(Key_Node *kptr)
+{
+    int i;
+    if(kptr -> Child_Type == 0)
+    {
+        for(i = 0;i < kptr -> Active_Keys;i++)
+        {
+            printf("%d ",kptr -> Key_Arr[i]);      
+        }
+        printf("\n");        
+    }
+    else
+    {
+        for(i = 0;i <= kptr -> Active_Keys;i++)
+        {
+            PrintStructure(kptr -> Children[i]);      
+        }
+        for(i = 0;i < kptr -> Active_Keys;i++)
+        {
+            printf("%d ",kptr -> Key_Arr[i]);      
+        }
+        printf("\n");    
+    }     
 }
